@@ -1,25 +1,25 @@
 /*:
  *
- *@plugindesc Kleberson Romero Wather Mark
- *@author Kleberson Romero	
+ *  @plugindesc Kleberson Romero Wather Mark
+ *  @author Kleberson Romero (GS_TEAM)
+ *  @version 1.0.2
  *
- *@param Image
- *@desc Imagem a ser utilizada como marca d'agua
- *@default Logo
+ *  @param Image
+ *  @desc Imagem a ser utilizada como marca d'agua
+ *  @default Logo
  *
- *@param Opacity Wathermark
- *@desc Opacidade da Imagem de Marca D'agua
- *@default 150
+ *  @param Opacity Wathermark
+ *  @desc Opacidade da Imagem de Marca D'agua
+ *  @default 150
  *
- *@param Position Wathermark
- *@desc Posição da Imagem de Marca D'agua
- *0 Sup.Esquerdo, 1 Inf.Esquerdo,2 Sup.Direito, 3 Inf.Direito
- *@default 0
+ *  @param Position Wathermark
+ *  @desc Posição da Imagem de Marca D'agua
+ *  0 Sup.Esquerdo, 1 Inf.Esquerdo,2 Sup.Direito, 3 Inf.Direito
+ *  @default 0
  *
- *
- *@help
- *Esse plugin adiciona uma marca d'agua no seu projeto
- *seu uso é mais constante em vídeo aulas ou tutoriais
+ *  @help
+ *  Esse plugin adiciona uma marca d'agua no seu projeto
+ *  seu uso é mais constante em vídeo aulas ou tutoriais
  *
 */
 
@@ -27,6 +27,8 @@ var parameters = PluginManager.parameters('KR_Plugin'); // Nome do Arquivo de Pl
 var KR_LogoImage = String(parameters['Image'] || 'Logo');    // Imagem do Logo definido pelo PluginManager Img deve ficar em System
 var KR_Opacity = Number(parameters['Opacity Wathermark'] || 150);
 var KR_Position = Number(parameters['Position Wathermark'] || 1);
+
+var KR = KR || {};
 
 var _Scene_Base_createWindowLayer = Scene_Base.prototype.createWindowLayer;
 Scene_Base.prototype.createWindowLayer = function(){
@@ -38,6 +40,7 @@ Scene_Base.prototype.createWathermark = function() {
     this._krSprite1 = new Sprite(ImageManager.loadSystem(KR_LogoImage));
     var LogoIm = this._krSprite1
     this.addChild(this._krSprite1);
+    this._count = new Number();
     this._krSprite1.opacity = KR_Opacity;
     if(KR_Position === 1){
     this._krSprite1.y = Graphics.height - LogoIm.height;
@@ -50,4 +53,32 @@ Scene_Base.prototype.createWathermark = function() {
     this._krSprite1.y = Graphics.height - LogoIm.height;
     };
 
+};
+
+
+var _Scene_Base_update  = Scene_Base.prototype.update;
+Scene_Base.prototype.update = function() {
+    _Scene_Base_update.call(this);
+    if(typeof this._krSprite1 === 'object')
+    {
+        this._count += 0.06;
+        this._krSprite1.scale.x = 1 + Math.sin(this._count) * 0.02;
+        this._krSprite1.scale.y = 1 + Math.sin(this._count) * 0.02;
+        if(KR.hide){this._krSprite1.opacity -= 4}else if(!KR.hide){this._krSprite1.opacity += 4};
+        if(KR.move)this._krSprite1.move(KR.moveX, KR.moveY);
+    }
+};
+
+var _pluginCommand_command = Game_Interpreter.prototype.pluginCommand;
+
+Game_Interpreter.prototype.pluginCommand = function(command, args) {
+   _pluginCommand_command.call(this, command, args);
+   if (command === 'Wathermark') {
+      var texto = String(args[0]);
+      var numero1 = Number(args[1]);
+      var numero2 = Number(args[2]);
+      if(texto === 'hide')return KR.hide = true;
+      if(texto === 'show')return KR.hide = false;
+      if(texto === 'move')return KR.move = true, KR.moveX = numero1, KR.moveY = numero2;
+   }
 };
